@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Amazon.S3.Transfer;
 
 
 /*
@@ -24,6 +25,7 @@ namespace ConsoleApp1
         
         
         private static IAmazonS3 client;
+        
         
         static void Main(string[] args)
         {
@@ -65,17 +67,22 @@ namespace ConsoleApp1
                 {
                     FileInfo file = new FileInfo(fileName);
 
-                    var putRequest2 = new PutObjectRequest
-                    {
-                        BucketName = bucketName
-                        ,Key = file.Name
-                        ,FilePath = fileName
-                        ,ContentType = "text/plain"
-                        //,StorageClass = S3StorageClass.DeepArchive //Set up to use the DeepArchive storage class, change as needed
-                    };
+                    var uploadRequest =
+                        new TransferUtilityUploadRequest
+                        {
+                            BucketName = bucketName
+                            ,FilePath = fileName
+                            ,Key = file.Name
+                            ,ContentType = "text/plain"
+                        };
+                    
+                    uploadRequest.UploadProgressEvent +=
+                        new EventHandler<UploadProgressArgs>
+                            (uploadRequest_UploadPartProgressEvent);
 
-                    putRequest2.Metadata.Add("x-amz-meta-title", "someTitle");
-                    PutObjectResponse response2 = await client.PutObjectAsync(putRequest2);
+                    var fileTransferUtility = new TransferUtility(client);
+                    await fileTransferUtility.UploadAsync(uploadRequest);
+                    
                     Console.WriteLine("File " + file.Name + " successfully uploaded at: "+DateTime.Now.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 }
                 catch (AmazonS3Exception e)
@@ -102,6 +109,12 @@ namespace ConsoleApp1
                 }
             } //End of while loop
             Console.WriteLine("All files uploaded.");
+        }
+        
+        static void uploadRequest_UploadPartProgressEvent(object sender, UploadProgressArgs e)
+        {
+            // Process event.
+            Console.WriteLine(e.TransferredBytes + "/" + e.TotalBytes);
         }
         
     }
