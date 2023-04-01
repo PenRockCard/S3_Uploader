@@ -10,7 +10,7 @@ using Amazon.S3.Transfer;
 
 /*
  * Uploads files to AWS S3 buckets.
- * Might have a bunch of security flaws, etc, but it works as a simple uploader.
+ * Might have a bunch of security flaws, etc, but it works as a simple uploader that displays the percent and speed of the current upload.
  * A file list (full paths) must be saved as List.txt within the folder containing the .exe file
  */
 
@@ -18,7 +18,7 @@ namespace ConsoleApp1
 {
     class Program
     {
-        private static string bucketName = "photos-glacier-deep";
+        private static string bucketName = "BUCKET NAME HERE";
         private static List<string> fileList = new List<string>();
         private static readonly RegionEndpoint bucketRegion = RegionEndpoint.USEast2;
         private static long transferredBytesPrevious = 0;
@@ -61,6 +61,7 @@ namespace ConsoleApp1
                               DateTime.Now.ToString(System.Globalization.CultureInfo.InvariantCulture));
             int count = 0;
             string fileName;
+            //Would probably be better to have this as a for loop, but...
             while (true)
             {
                 fileName = fileList[count];
