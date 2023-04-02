@@ -24,7 +24,7 @@ namespace ConsoleApp1
         private static long transferredBytesPrevious = 0;
         private static DateTime timePrevious;
         private static double percentCompleteCumulative = 0;
-
+        private static double percentCompletePrevious = 0;
 
         private static IAmazonS3 client;
 
@@ -72,7 +72,8 @@ namespace ConsoleApp1
                     var uploadRequest =
                         new TransferUtilityUploadRequest
                         {
-                            BucketName = bucketName, FilePath = fileName, Key = file.Name, ContentType = "text/plain"
+                            BucketName = bucketName, FilePath = fileName, Key = file.Name, ContentType = "text/plain",
+                            StorageClass = S3StorageClass.DeepArchive
                         };
                     DateTime uploadStart = DateTime.Now;
                     uploadRequest.UploadProgressEvent +=
@@ -142,11 +143,13 @@ namespace ConsoleApp1
                 Console.WriteLine(transferredBytesDouble.ToString("N1") + " MB / " + totalBytesDouble.ToString("N1") +
                                   " MB. " + percentComplete.ToString("N1") + "% complete. " + speed.ToString("N2") +
                                   "MB/sec");
+                percentCompleteCumulative = 0;
             }
             else
             {
-                percentCompleteCumulative += percentComplete;
+                percentCompleteCumulative += percentComplete - percentCompletePrevious;
             }
+            percentCompletePrevious = percentComplete;
         }
     }
 }
